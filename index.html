@@ -26,17 +26,16 @@
   #counter { position: fixed; bottom: 32px; right: 48px; font-size: 11px; letter-spacing: 0.14em; color: rgba(255,255,255,0.35); z-index: 100; }
   #hint { position: fixed; bottom: 32px; left: 48px; font-size: 11px; letter-spacing: 0.08em; color: rgba(255,255,255,0.2); font-style: italic; z-index: 100; transition: opacity 1s; }
 
-  /* 모든 페이지 절대 위치로 꽉 차게 겹침 */
   .page {
     position: fixed;
     inset: 0;
     will-change: transform, opacity;
   }
   .page img {
-    width: 100%; height: 100%;
+    width: 100vw;
+    height: 100vh;
     object-fit: cover;
     display: block;
-    mix-blend-mode: multiply;
   }
 </style>
 </head>
@@ -80,8 +79,9 @@ function layout(animate) {
     const depth = i - current;
     page.style.zIndex    = TOTAL - depth;
     page.style.transform = 'translate(0,0)';
-    // 모든 레이어 보임: 맨 위는 1, 나머지는 mix-blend로 겹침
-    page.style.opacity   = depth === 0 ? 1 : 0.9;
+    // depth 0=맨위(1.0), 1=0.6, 2=0.35, 3+=0.2 이하로 점점 옅게
+    const opMap = [1, 0.6, 0.38, 0.22, 0.14, 0.1];
+    page.style.opacity   = depth < opMap.length ? opMap[depth] : 0.07;
   });
   counter.textContent = `${current + 1} / ${TOTAL}`;
 }
