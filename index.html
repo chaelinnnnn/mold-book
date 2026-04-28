@@ -13,6 +13,9 @@
     font-family: 'IM Fell English', serif;
     overflow: hidden;
     cursor: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   #cursor {
     position: fixed; pointer-events: none; z-index: 9999;
@@ -22,19 +25,27 @@
     transition: width 0.15s, height 0.15s;
   }
   #cursor.next { width: 16px; height: 16px; border-color: #fff; }
-  #title { position: fixed; top: 32px; left: 48px; font-size: 11px; letter-spacing: 0.14em; color: rgba(255,255,255,0.35); z-index: 100; }
-  #counter { position: fixed; bottom: 32px; right: 48px; font-size: 11px; letter-spacing: 0.14em; color: rgba(255,255,255,0.35); z-index: 100; }
-  #hint { position: fixed; bottom: 32px; left: 48px; font-size: 11px; letter-spacing: 0.08em; color: rgba(255,255,255,0.2); font-style: italic; z-index: 100; transition: opacity 1s; }
+  #title { position: fixed; top: 24px; left: 40px; font-size: 11px; letter-spacing: 0.14em; color: rgba(255,255,255,0.3); z-index: 100; }
+  #counter { position: fixed; bottom: 24px; right: 40px; font-size: 11px; letter-spacing: 0.14em; color: rgba(255,255,255,0.3); z-index: 100; }
+  #hint { position: fixed; bottom: 24px; left: 40px; font-size: 11px; letter-spacing: 0.08em; color: rgba(255,255,255,0.2); font-style: italic; z-index: 100; transition: opacity 1s; }
+
+  #stage {
+    position: relative;
+    /* PNG 비율 맞춤 — 약 3:1 가로세로 */
+    width: 90vw;
+    height: calc(90vw / 3);
+    max-height: 80vh;
+    max-width: calc(80vh * 3);
+  }
 
   .page {
-    position: fixed;
+    position: absolute;
     inset: 0;
     will-change: transform, opacity;
   }
   .page img {
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
+    width: 100%; height: 100%;
+    object-fit: fill;
     display: block;
   }
 </style>
@@ -44,24 +55,25 @@
 <div id="title">Language as Mold — Field Notes</div>
 <div id="counter">1 / 20</div>
 <div id="hint">← → or click to turn page</div>
+<div id="stage"></div>
 
 <script>
 const TOTAL = 20;
 let current = 0;
 let turning = false;
-const cursorEl = document.getElementById('cursor');
+const stage    = document.getElementById('stage');
 const counter  = document.getElementById('counter');
 const hint     = document.getElementById('hint');
+const cursorEl = document.getElementById('cursor');
 
-// 모든 페이지 생성 — 전부 겹쳐서 보임
-const pages = [];
+const pages = new Array(TOTAL);
 for (let i = TOTAL - 1; i >= 0; i--) {
   const div = document.createElement('div');
   div.className = 'page';
   const img = document.createElement('img');
   img.src = `${i + 1}.png`;
   div.appendChild(img);
-  document.body.appendChild(div);
+  stage.appendChild(div);
   pages[i] = div;
 }
 
@@ -69,19 +81,16 @@ function layout(animate) {
   pages.forEach((page, i) => {
     page.style.transition = animate ? 'transform 0.42s ease, opacity 0.35s ease' : 'none';
     if (i < current) {
-      // 이미 넘긴 페이지 — 왼쪽으로 날아감
       page.style.zIndex    = i;
       page.style.opacity   = '0';
-      page.style.transform = 'translateX(-110vw) rotate(-2deg)';
+      page.style.transform = 'translateX(-120%) rotate(-2deg)';
       return;
     }
-    // 아직 안 넘긴 페이지 — 전부 겹쳐서 보임
     const depth = i - current;
+    const opMap = [1, 0.55, 0.35, 0.2, 0.12, 0.08, 0.06];
     page.style.zIndex    = TOTAL - depth;
+    page.style.opacity   = depth < opMap.length ? opMap[depth] : 0.04;
     page.style.transform = 'translate(0,0)';
-    // depth 0=맨위(1.0), 1=0.6, 2=0.35, 3+=0.2 이하로 점점 옅게
-    const opMap = [1, 0.6, 0.38, 0.22, 0.14, 0.1];
-    page.style.opacity   = depth < opMap.length ? opMap[depth] : 0.07;
   });
   counter.textContent = `${current + 1} / ${TOTAL}`;
 }
@@ -91,13 +100,9 @@ function goNext() {
   turning = true;
   const top = pages[current];
   top.style.transition = 'transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease';
-  top.style.transform  = 'translateX(-110vw) rotate(-2deg)';
+  top.style.transform  = 'translateX(-120%) rotate(-2deg)';
   top.style.opacity    = '0';
-  setTimeout(() => {
-    current++;
-    layout(true);
-    setTimeout(() => turning = false, 460);
-  }, 200);
+  setTimeout(() => { current++; layout(true); setTimeout(() => turning = false, 460); }, 200);
 }
 
 function goPrev() {
@@ -106,7 +111,7 @@ function goPrev() {
   current--;
   const r = pages[current];
   r.style.transition = 'none';
-  r.style.transform  = 'translateX(-110vw) rotate(-2deg)';
+  r.style.transform  = 'translateX(-120%) rotate(-2deg)';
   r.style.opacity    = '0';
   requestAnimationFrame(() => requestAnimationFrame(() => {
     layout(true);
