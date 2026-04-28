@@ -82,15 +82,16 @@ const scene    = document.getElementById('scene');
 const counter  = document.getElementById('counter');
 const hint     = document.getElementById('hint');
 const cursorEl = document.getElementById('cursor');
-const pages = [];
-for (let i = 0; i < TOTAL; i++) {
+const pages = new Array(TOTAL);
+// 역순으로 생성 — TOTAL부터 1까지, 그래서 1.png가 맨 위
+for (let i = TOTAL - 1; i >= 0; i--) {
   const page = document.createElement('div');
   page.className = 'page';
   const img = document.createElement('img');
   img.src = `${i + 1}.png`;
   page.appendChild(img);
   scene.insertBefore(page, document.getElementById('book-shadow'));
-  pages.push(page);
+  pages[i] = page;
 }
 function layout(animate) {
   pages.forEach((page, i) => {
