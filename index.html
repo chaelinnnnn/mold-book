@@ -109,16 +109,16 @@
 
 <script>
 const TOTAL = 30;
-const VISIBLE_LAYERS = 5; // 몇 장이 겹쳐 보일지
-let current = 0;
+const VISIBLE_LAYERS = 5;
+let current = 4; // 5번째 이미지부터 시작해서 처음부터 5장 겹쳐 보임
 
 const stage = document.getElementById('stage');
 const counter = document.getElementById('counter');
 const hint = document.getElementById('hint');
 const cursorEl = document.getElementById('cursor');
 
-// 레이어 opacity 설정 — 맨 위가 가장 진하고 아래로 갈수록 옅어짐
 const OPACITIES = [1, 0.45, 0.25, 0.14, 0.07];
+const STAGGER_DELAY = 120; // ms
 
 // 레이어 생성
 const layers = [];
@@ -131,40 +131,42 @@ for (let i = 0; i < VISIBLE_LAYERS; i++) {
   layers.push({ div, img });
 }
 
-function getImgIndex(layerPos) {
-  // layerPos 0 = 맨 위 (current), 1 = 바로 아래, ...
-  const idx = current - layerPos;
-  return idx;
-}
-
-function render() {
+function render(animate = false) {
   for (let i = 0; i < VISIBLE_LAYERS; i++) {
-    const imgIdx = getImgIndex(i);
-    const { div, img } = layers[VISIBLE_LAYERS - 1 - i]; // 뒤에서부터 쌓기
+    const imgIdx = current - i;
+    const { div, img } = layers[VISIBLE_LAYERS - 1 - i];
 
     if (imgIdx >= 0 && imgIdx < TOTAL) {
-      img.src = `${imgIdx + 1}.png`;
-      div.style.opacity = OPACITIES[i];
-      div.style.display = 'flex';
+      const delay = animate ? i * STAGGER_DELAY : 0;
+      setTimeout(() => {
+        img.src = `${imgIdx + 1}.png`;
+        div.style.opacity = OPACITIES[i];
+        div.style.display = 'flex';
+      }, delay);
     } else {
       div.style.display = 'none';
     }
   }
-
   counter.textContent = `${current + 1} / ${TOTAL}`;
 }
 
+let turning = false;
+
 function goNext() {
-  if (current < TOTAL - 1) {
+  if (current < TOTAL - 1 && !turning) {
+    turning = true;
     current++;
-    render();
+    render(true);
+    setTimeout(() => { turning = false; }, VISIBLE_LAYERS * STAGGER_DELAY + 200);
   }
 }
 
 function goPrev() {
-  if (current > 0) {
+  if (current > 0 && !turning) {
+    turning = true;
     current--;
-    render();
+    render(true);
+    setTimeout(() => { turning = false; }, VISIBLE_LAYERS * STAGGER_DELAY + 200);
   }
 }
 
