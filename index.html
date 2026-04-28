@@ -88,7 +88,7 @@ function layout(animate) {
       return;
     }
     const depth = i - current;
-    const opMap = [1, 0.75, 0.6, 0.48, 0.38, 0.3, 0.23, 0.17, 0.12, 0.08];
+    const opMap = [1, 0.92, 0.84, 0.76, 0.68, 0.6, 0.52, 0.44, 0.36, 0.28];
     page.style.zIndex    = TOTAL - depth;
     page.style.opacity   = depth < opMap.length ? opMap[depth] : 0.04;
     page.style.transform = 'translate(0,0)';
